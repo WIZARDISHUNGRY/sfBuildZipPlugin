@@ -1,20 +1,21 @@
 <?php
 
-class limetrackerZipTask extends sfBaseTask
+class projectBuildZipTask extends sfBaseTask
 {
 
   protected $verbose=false;
   protected $reopen_interval=200; // see http://bugs.php.net/bug.php?id=40494
   protected $count=0;
   protected $path;
+  protected $excludes=Array(); // list of file to exclude
 
   protected function configure()
   {
-    $this->namespace        = 'limetracker';
-    $this->name             = 'zip';
+    $this->namespace        = 'project';
+    $this->name             = 'build-zip';
     $this->briefDescription = 'Creates a zipfile of a release';
     $this->detailedDescription = <<<EOF
-The [limetracker:zip|INFO] task makes a ready to go zipfile.
+The [project:build-zip|INFO] task makes a ready to go zipfile.
 EOF;
     $this->addArgument('file', sfCommandArgument::REQUIRED, 'The path to the zipfile',null);
     $this->addOption('verbose', null, sfCommandOption::PARAMETER_REQUIRED, 'Enables verbose output', false);
@@ -131,31 +132,7 @@ EOF;
   }
   protected function generateExcludes($path)
   {
-    $excludes=Array(    // hardcoded ignores
-      '.gitignore',     // not dotfiles
-      '.gitmodules',    // not dotfiles
-      '.htpasswd',      // do not include developer password
-      '.git','*/.git',  // git directory
-      '*/.svn',
-      '*/.DS_Store','.DS_Store',
-      'lib/vendor/symfony/data/web/sf',
-      'lib/vendor/symfony/doc',
-      'lib/vendor/symfony/lib/i18n',
-      'lib/vendor/symfony/lib/task/generator/skeleton',
-      'lib/vendor/symfony/lib/task/project/upgrade*',
-      'lib/vendor/symfony/lib/plugins/sfCompat10Plugin',
-      'lib/vendor/symfony/lib/plugins/sfDoctrinePlugin',
-      'lib/vendor/symfony/lib/plugins/sfPropelPlugin/lib/vendor/propel-generator/test',
-      'lib/vendor/symfony/lib/plugins/sfPropelPlugin/test',
-      'lib/vendor/symfony/test',
-      'plugins/*/test',
-      'plugins/.*',
-      'plugins/sfFeed2Plugin', // I have a copy of this in my directory for -stable
-      'plugins/File_Bittorrent2', // added via symlinks in lib
-      'test',       // tests don't bleong in an end user release
-      'tracker_dev.php*', // no debugging
-      '*.swp', '*/*.swp', // no vim swapfiles
-    );
+    $excludes=$this->excludes;
 
     $contents=file_get_contents("$path/.gitignore");
     if($contents!==FALSE)
